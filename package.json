@@ -1,0 +1,7 @@
+{
+  "name": "mini-spotify",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}
