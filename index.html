@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mini Spotify</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        .player { background: #282828; padding: 20px; border-radius: 10px; max-width: 400px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        button { background: #1DB954; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin: 5px; font-weight: bold; }
+        button:hover { background: #1ed760; }
+        ul { list-style: none; padding: 0; text-align: left; }
+        li { padding: 12px; border-bottom: 1px solid #444; cursor: pointer; border-radius: 4px; }
+        li:hover { background: #3E3E3E; }
+        .active { color: #1DB954; font-weight: bold; background: #333; }
+        #now-playing { font-size: 1.2em; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="player">
+        <h2>Mini Spotify</h2>
+        <p id="now-playing">Select a song below</p>
+        <audio id="audio-player" controls style="width: 100%; margin-bottom: 15px;"></audio>
+        <div>
+            <button onclick="prevSong()">⏮ Previous</button>
+            <button onclick="nextSong()">Next ⏭</button>
+        </div>
+        <h3>Your Playlist</h3>
+        <ul id="playlist"></ul>
+    </div>
+
+    <script>
+        let songs = [];
+        let currentIndex = 0;
+        const audio = document.getElementById('audio-player');
+        const nowPlaying = document.getElementById('now-playing');
+        const playlistEl = document.getElementById('playlist');
+
+        fetch('/api/songs')
+            .then(res => res.json())
+            .then(data => {
+                songs = data;
+                renderPlaylist();
+            });
+
+        function renderPlaylist() {
+            playlistEl.innerHTML = '';
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.textContent = song.replace('.mp3', ''); 
+                if (index === currentIndex && audio.src) li.className = 'active';
+                li.onclick = () => playSong(index);
+                playlistEl.appendChild(li);
+            });
+        }
+
+        function playSong(index) {
+            currentIndex = index;
+            const song = songs[currentIndex];
+            audio.src = '/music/' + encodeURIComponent(song);
+            audio.play();
+            nowPlaying.textContent = song.replace('.mp3', '');
+            renderPlaylist(); 
+        }
+
+        function nextSong() {
+            if (songs.length === 0) return;
+            currentIndex = (currentIndex + 1) % songs.length;
+            playSong(currentIndex);
+        }
+
+        function prevSong() {
+            if (songs.length === 0) return;
+            currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+            playSong(currentIndex);
+        }
+
+        audio.onended = nextSong;
+    </script>
+</body>
+</html>
